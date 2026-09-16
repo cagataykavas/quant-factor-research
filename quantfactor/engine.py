@@ -5,7 +5,12 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from .core import backtest_cross_sectional_factor, information_coefficient, neutralize, winsorized_zscore
+from .core import (
+    backtest_cross_sectional_factor,
+    information_coefficient,
+    neutralize,
+    winsorized_zscore,
+)
 
 
 class FactorResearchEngine:

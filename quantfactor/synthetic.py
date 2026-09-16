@@ -14,7 +14,6 @@ def synthetic_factor_panel(
     names = [f"asset_{i:03d}" for i in range(assets)]
 
     size_exposure = rng.normal(0, 1, assets)
-    sector_exposure = rng.normal(0, 1, assets)
     latent_quality = rng.normal(0, 1, assets)
     latent_value = rng.normal(0, 1, assets)
     latent_momentum = np.zeros(assets)

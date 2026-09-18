@@ -33,7 +33,33 @@ flowchart LR
 - portfolio turnover from changes in cross-sectional holdings;
 - explicit transaction-cost deduction;
 - cumulative gross/net return, annualized volatility, Sharpe and maximum drawdown;
-- cost sensitivity at `0 / 2 / 5 / 10 / 20` bps.
+- cost sensitivity at `0 / 2 / 5 / 10 / 20` bps;
+- Benjamini-Hochberg false-discovery control across tested factor hypotheses.
+
+## Multiple-testing guardrail
+
+Factor discovery often evaluates many candidate signals, so an unadjusted `p < 0.05`
+rule can promote chance findings. `quantfactor.multiple_testing.benjamini_hochberg`
+accepts named p-values, returns monotone adjusted p-values, and records the decision
+at a configurable false-discovery rate.
+
+```python
+from quantfactor.multiple_testing import benjamini_hochberg
+
+results = benjamini_hochberg(
+    [("momentum", 0.004), ("value", 0.03), ("quality", 0.40)],
+    false_discovery_rate=0.05,
+)
+publishable = [result.name for result in results if result.rejected]
+```
+
+Names and probability bounds are validated, duplicate hypotheses fail closed, input
+order is preserved, and every result is JSON-ready through `to_dict()`.
+
+This controls the expected false-discovery proportion for the supplied family of
+tests. It does not repair data snooping, correlated research choices, a biased
+universe, weak p-value construction, or repeated experimentation that is omitted
+from the declared hypothesis family.
 
 ## Synthetic factor panel
 
@@ -79,7 +105,6 @@ A serious real-market project would still need:
 - realistic rebalance calendars and execution delay;
 - borrow constraints and shorting costs;
 - capacity/market-impact analysis;
-- multiple-testing controls;
 - out-of-sample and live-paper evaluation.
 
 These are stated explicitly rather than hidden behind a synthetic Sharpe ratio.
@@ -102,4 +127,4 @@ GitHub Actions runs a reduced synthetic experiment and builds the container.
 
 ## Portfolio signal
 
-**Python · NumPy · Pandas · factor research · cross-sectional statistics · IC · neutralization · long/short portfolios · transaction costs · backtesting · FastAPI · Docker · CI/CD**
+**Python · NumPy · Pandas · factor research · cross-sectional statistics · IC · neutralization · long/short portfolios · transaction costs · multiple-testing control · backtesting · FastAPI · Docker · CI/CD**

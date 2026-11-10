@@ -27,6 +27,7 @@ flowchart LR
 - cross-sectional winsorization at configurable quantiles;
 - standardized factor scores;
 - linear residualization against a nuisance exposure (synthetic size in the demo);
+- fail-closed neutralization diagnostics for rank, conditioning and residual exposure correlation;
 - daily **Spearman information coefficient**;
 - IC mean, positive-IC rate and an illustrative annualized IC information ratio;
 - dollar-neutral top/bottom quantile long-short weights;
@@ -67,6 +68,12 @@ curl "http://localhost:8000/demo?dates=300&assets=60&cost_bps=5"
 ## Why turnover is first-class
 
 A cross-sectional backtest can look excellent before implementation costs. Re-ranking an entire universe every period can require large changes in positions, so the repository reports average turnover and recomputes cumulative results over several cost assumptions. This does not solve market-impact modeling, but it prevents a zero-cost backtest from being the only headline number.
+
+## Neutralization is verified, not assumed
+
+Exposure residualization now rejects misaligned panels, non-finite inputs, rank-deficient regressions and ill-conditioned design matrices. Each research result records the worst condition number, absolute residual mean and absolute residual/exposure correlation observed across dates. This makes silent neutralization failure visible without publishing raw cross-sectional observations.
+
+The default condition-number and orthogonality limits are engineering safeguards, not universal statistical thresholds. They detect numerical failure; they do not prove that the selected exposure set is economically complete or point-in-time correct.
 
 ## Research limitations
 

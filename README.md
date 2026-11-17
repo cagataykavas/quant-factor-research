@@ -34,6 +34,7 @@ flowchart LR
 - explicit transaction-cost deduction;
 - cumulative gross/net return, annualized volatility, Sharpe and maximum drawdown;
 - cost sensitivity at `0 / 2 / 5 / 10 / 20` bps.
+- sign-aware implementation-delay IC retention at 0, 1, 2 and 5 periods.
 
 ## Synthetic factor panel
 
@@ -67,6 +68,19 @@ curl "http://localhost:8000/demo?dates=300&assets=60&cost_bps=5"
 ## Why turnover is first-class
 
 A cross-sectional backtest can look excellent before implementation costs. Re-ranking an entire universe every period can require large changes in positions, so the repository reports average turnover and recomputes cumulative results over several cost assumptions. This does not solve market-impact modeling, but it prevents a zero-cost backtest from being the only headline number.
+
+## Why signal delay is audited
+
+Same-period IC can overstate a factor that cannot be formed and executed before the measured return
+begins. The evaluation now shifts forward returns by reviewed implementation lags and recomputes
+cross-sectional Spearman IC. Promotion requires a minimum same-period signal and sign-aware IC
+retention at the required lag, so a sign reversal cannot pass by preserving only absolute magnitude.
+
+The audit requires exactly aligned, increasing date and asset panels, bounded work, sufficient
+cross-sectional support and at least 60 usable observations per lag. It measures delay sensitivity;
+it does not model intraday fills, stale fundamentals, market impact, borrow availability or prove
+that the synthetic factor is investable. Lag and retention thresholds require strategy-specific
+calibration before use with real capital.
 
 ## Research limitations
 

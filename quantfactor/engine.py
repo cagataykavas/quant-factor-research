@@ -11,6 +11,7 @@ from .core import (
     neutralize,
     winsorized_zscore,
 )
+from .delay import audit_signal_delay
 
 
 class FactorResearchEngine:
@@ -42,6 +43,7 @@ class FactorResearchEngine:
             if np.isfinite(ic):
                 ics.append(ic)
         result, history = backtest_cross_sectional_factor(signal, forward_returns, quantile=quantile, cost_bps=cost_bps)
+        delay_audit = audit_signal_delay(signal, forward_returns)
         ic_mean = float(np.mean(ics)) if ics else 0.0
         ic_std = float(np.std(ics, ddof=1)) if len(ics) > 1 else 0.0
         ic_ir = ic_mean / ic_std * np.sqrt(252) if ic_std > 0 else 0.0
@@ -53,6 +55,7 @@ class FactorResearchEngine:
             "mean_daily_ic": ic_mean,
             "ic_information_ratio": float(ic_ir),
             "positive_ic_rate": float(np.mean(np.asarray(ics) > 0)) if ics else 0.0,
+            "signal_delay_audit": delay_audit.as_dict(),
             "backtest": result.as_dict(),
             "transaction_cost_sensitivity": cost_sensitivity,
             "history": [

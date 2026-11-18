@@ -13,6 +13,7 @@ flowchart LR
     X[Size exposure] --> N[Linear neutralization]
     Z --> N
     N --> IC[Daily Spearman IC]
+    IC --> HAC[Newey-West uncertainty]
     N --> Q[Top/bottom quantile portfolio]
     F[Forward returns] --> IC
     F --> Q
@@ -20,6 +21,7 @@ flowchart LR
     T --> B[Long-short backtest]
     B --> REP[JSON + HTML report]
     IC --> REP
+    HAC --> REP
 ```
 
 ## Implemented research mechanics
@@ -29,6 +31,7 @@ flowchart LR
 - linear residualization against a nuisance exposure (synthetic size in the demo);
 - daily **Spearman information coefficient**;
 - IC mean, positive-IC rate and an illustrative annualized IC information ratio;
+- dependence-aware Newey–West standard error and asymptotic mean-IC test;
 - dollar-neutral top/bottom quantile long-short weights;
 - portfolio turnover from changes in cross-sectional holdings;
 - explicit transaction-cost deduction;
@@ -68,6 +71,24 @@ curl "http://localhost:8000/demo?dates=300&assets=60&cost_bps=5"
 
 A cross-sectional backtest can look excellent before implementation costs. Re-ranking an entire universe every period can require large changes in positions, so the repository reports average turnover and recomputes cumulative results over several cost assumptions. This does not solve market-impact modeling, but it prevents a zero-cost backtest from being the only headline number.
 
+## Dependence-aware IC inference
+
+Daily information coefficients are a time series, not independent observations.
+Positive serial dependence can make a naive standard error look too small. The
+evaluation therefore reports a Bartlett-kernel Newey–West long-run variance,
+standard error, t-statistic and two-sided asymptotic normal p-value alongside the
+existing descriptive IC information ratio.
+
+The default lag uses `floor(4 * (T / 100) ** (2 / 9))`; the CLI and API can accept
+an explicit non-negative lag smaller than the sample. The result records the lag,
+bandwidth method, naive and HAC standard errors, their ratio, and the number of
+daily IC observations. Non-finite or out-of-range ICs fail closed. Degenerate
+zero-variance series return unavailable test statistics instead of infinities.
+
+This is inference for one prespecified IC series. It does not correct for factor
+selection, multiple testing, overlapping forward-return horizons, universe bias or
+data snooping. Those require separate, jointly governed controls.
+
 ## Research limitations
 
 A serious real-market project would still need:
@@ -102,4 +123,4 @@ GitHub Actions runs a reduced synthetic experiment and builds the container.
 
 ## Portfolio signal
 
-**Python · NumPy · Pandas · factor research · cross-sectional statistics · IC · neutralization · long/short portfolios · transaction costs · backtesting · FastAPI · Docker · CI/CD**
+**Python · NumPy · Pandas · factor research · cross-sectional statistics · IC · Newey–West inference · neutralization · long/short portfolios · transaction costs · backtesting · FastAPI · Docker · CI/CD**

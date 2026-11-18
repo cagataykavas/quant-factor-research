@@ -9,11 +9,15 @@ from quantfactor.synthetic import synthetic_factor_panel
 
 def test_factor_pipeline_produces_ic_and_backtest_history():
     signal, forward, size = synthetic_factor_panel(dates=220, assets=50, seed=42)
-    result = FactorResearchEngine().evaluate(signal, forward, size_exposure=size, cost_bps=5.0)
+    result = FactorResearchEngine().evaluate(
+        signal, forward, size_exposure=size, cost_bps=5.0
+    )
     assert result["backtest"]["observations"] > 100
     assert -1.0 <= result["mean_daily_ic"] <= 1.0
     assert 0.0 <= result["positive_ic_rate"] <= 1.0
     assert len(result["transaction_cost_sensitivity"]) == 5
+    assert result["ic_inference"]["observations"] == result["backtest"]["observations"]
+    assert result["ic_inference"]["hac_standard_error"] >= 0
 
 
 def test_higher_cost_does_not_improve_same_backtest():
@@ -24,6 +28,7 @@ def test_higher_cost_does_not_improve_same_backtest():
 
 
 def test_demo_api():
-    response = TestClient(app).get("/demo?dates=150&assets=35&seed=2")
+    response = TestClient(app).get("/demo?dates=150&assets=35&seed=2&ic_hac_lag=3")
     assert response.status_code == 200
     assert response.json()["backtest"]["observations"] > 50
+    assert response.json()["ic_inference"]["lag"] == 3

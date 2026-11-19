@@ -14,6 +14,20 @@ def health() -> dict[str, str]:
 
 
 @app.get("/demo")
-def demo(seed: int = 42, dates: int = 300, assets: int = 60, cost_bps: float = 5.0) -> dict[str, object]:
-    signal, forward, size = synthetic_factor_panel(dates=dates, assets=assets, seed=seed)
-    return FactorResearchEngine().evaluate(signal, forward, size_exposure=size, cost_bps=cost_bps)
+def demo(
+    seed: int = 42,
+    dates: int = 300,
+    assets: int = 60,
+    cost_bps: float = 5.0,
+    liquidate_at_end: bool = False,
+) -> dict[str, object]:
+    signal, forward, size = synthetic_factor_panel(
+        dates=dates, assets=assets, seed=seed
+    )
+    return FactorResearchEngine().evaluate(
+        signal,
+        forward,
+        size_exposure=size,
+        cost_bps=cost_bps,
+        liquidate_at_end=liquidate_at_end,
+    )

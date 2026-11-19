@@ -66,7 +66,7 @@ curl "http://localhost:8000/demo?dates=300&assets=60&cost_bps=5"
 
 ## Why turnover is first-class
 
-A cross-sectional backtest can look excellent before implementation costs. Re-ranking an entire universe every period can require large changes in positions, so the repository reports average turnover and recomputes cumulative results over several cost assumptions. This does not solve market-impact modeling, but it prevents a zero-cost backtest from being the only headline number.
+A cross-sectional backtest can look excellent before implementation costs. Re-ranking an entire universe every period can require large changes in positions, so the repository reports average turnover and recomputes cumulative results over several cost assumptions. Turnover is computed over the union of previous and current holdings, ensuring that positions removed from the eligible universe still incur an exit trade. This does not solve market-impact modeling, but it prevents a zero-cost backtest from being the only headline number.
 
 ## Research limitations
 

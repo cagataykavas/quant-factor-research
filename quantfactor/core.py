@@ -77,7 +77,13 @@ def backtest_cross_sectional_factor(
         if len(signal) < 5:
             continue
         weights = long_short_weights(signal, quantile)
-        turnover = float((weights - (prev_weights.reindex(weights.index).fillna(0.0) if prev_weights is not None else 0.0)).abs().sum())
+        if prev_weights is None:
+            turnover = float(weights.abs().sum())
+        else:
+            holdings = weights.index.union(prev_weights.index, sort=False)
+            current = weights.reindex(holdings, fill_value=0.0)
+            previous = prev_weights.reindex(holdings, fill_value=0.0)
+            turnover = float((current - previous).abs().sum())
         gross = float((weights * returns).sum())
         net = gross - turnover * cost_rate
         rows.append({"date": date, "gross": gross, "net": net, "turnover": turnover})

@@ -30,8 +30,8 @@ flowchart LR
 - daily **Spearman information coefficient**;
 - IC mean, positive-IC rate and an illustrative annualized IC information ratio;
 - dollar-neutral top/bottom quantile long-short weights;
-- portfolio turnover from changes in cross-sectional holdings;
-- explicit transaction-cost deduction;
+- lifecycle-decomposed turnover for entry, rebalance, eligibility exit and optional terminal liquidation;
+- explicit transaction-cost deductions by lifecycle stage;
 - cumulative gross/net return, annualized volatility, Sharpe and maximum drawdown;
 - cost sensitivity at `0 / 2 / 5 / 10 / 20` bps.
 
@@ -47,7 +47,7 @@ That construction is useful for testing whether the research machinery behaves c
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-python -m quantfactor.cli --dates 500 --assets 80 --cost-bps 5
+python -m quantfactor.cli --dates 500 --assets 80 --cost-bps 5 --liquidate-at-end
 ```
 
 Outputs:
@@ -61,12 +61,14 @@ artifacts/factor_report.html
 
 ```bash
 uvicorn app.api:app --reload
-curl "http://localhost:8000/demo?dates=300&assets=60&cost_bps=5"
+curl "http://localhost:8000/demo?dates=300&assets=60&cost_bps=5&liquidate_at_end=true"
 ```
 
 ## Why turnover is first-class
 
-A cross-sectional backtest can look excellent before implementation costs. Re-ranking an entire universe every period can require large changes in positions, so the repository reports average turnover and recomputes cumulative results over several cost assumptions. Turnover is computed over the union of previous and current holdings, ensuring that positions removed from the eligible universe still incur an exit trade. This does not solve market-impact modeling, but it prevents a zero-cost backtest from being the only headline number.
+A cross-sectional backtest can look excellent before implementation costs. Re-ranking an entire universe every period can require large changes in positions, so the repository reports average turnover and recomputes cumulative results over several cost assumptions. Turnover is decomposed into initial entry, rebalances among eligible assets, forced exits when assets leave the eligible universe, and an optional final liquidation. Terminal liquidation is charged against the final period without inventing another return observation. This does not solve market-impact modeling, but it makes the assumed trading lifecycle and each cost deduction visible instead of leaving terminal holdings implicitly open.
+
+`--liquidate-at-end` is opt-in to preserve the existing open-ended research convention. Entry means initial portfolio establishment; later trades into new positions are part of rebalance. Eligibility exit is reserved for positions whose assets disappear from the next usable cross-section. Reported deductions are additive return charges at the configured constant basis-point rate; they are not an exact attribution of the compounded gross-to-net return gap.
 
 ## Research limitations
 
@@ -79,6 +81,7 @@ A serious real-market project would still need:
 - realistic rebalance calendars and execution delay;
 - borrow constraints and shorting costs;
 - capacity/market-impact analysis;
+- spread, fee and borrow-cost variation across lifecycle stages;
 - multiple-testing controls;
 - out-of-sample and live-paper evaluation.
 
